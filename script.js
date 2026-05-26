@@ -1,16 +1,20 @@
 const CONTACT = {
-  // Substitua pelo numero real no formato internacional antes do deploy final.
-  whatsappNumber: "5500000000000",
+  whatsappNumber: "5547996052222",
   whatsappMessage:
-    "Ola! Gostaria de conhecer a Casa Pet SBS e agendar uma visita.",
-  instagramUrl: "https://www.instagram.com/casapet_sbs/",
+    "Olá! Vim pela página da LanaLu Banho e Tosa e gostaria de agendar um horário para meu pet.",
+  instagramUrl: "https://www.instagram.com/lanalu_banho_tosa/",
 };
 
 const header = document.querySelector("[data-header]");
+const menuToggle = document.querySelector("[data-menu-toggle]");
+const nav = document.querySelector("[data-nav]");
+const navLinks = document.querySelectorAll("[data-nav-link]");
 const revealItems = document.querySelectorAll("[data-reveal]");
 const yearTarget = document.querySelector("[data-current-year]");
 const whatsappLinks = document.querySelectorAll("[data-whatsapp-link]");
 const instagramLinks = document.querySelectorAll("[data-instagram-link]");
+const faqItems = document.querySelectorAll("[data-faq-item]");
+const logoMarks = document.querySelectorAll("[data-logo-mark]");
 const prefersReducedMotion = window.matchMedia(
   "(prefers-reduced-motion: reduce)",
 ).matches;
@@ -25,16 +29,106 @@ const setHeaderState = () => {
   header.classList.toggle("is-scrolled", window.scrollY > 12);
 };
 
+const setMenuState = (isOpen) => {
+  if (!nav || !menuToggle) return;
+
+  nav.classList.toggle("is-open", isOpen);
+  menuToggle.classList.toggle("is-active", isOpen);
+  menuToggle.setAttribute("aria-expanded", String(isOpen));
+  menuToggle.setAttribute("aria-label", isOpen ? "Fechar menu" : "Abrir menu");
+  document.body.classList.toggle("menu-open", isOpen);
+};
+
+const setFaqState = (item, isOpen) => {
+  const button = item.querySelector("[data-faq-button]");
+  const answer = item.querySelector("[data-faq-answer]");
+
+  if (!button || !answer) return;
+
+  item.classList.toggle("is-open", isOpen);
+  button.setAttribute("aria-expanded", String(isOpen));
+  answer.hidden = !isOpen;
+};
+
 whatsappLinks.forEach((link) => {
   link.href = buildWhatsAppUrl();
   link.target = "_blank";
-  link.rel = "noreferrer";
+  link.rel = "noopener noreferrer";
 });
 
 instagramLinks.forEach((link) => {
   link.href = CONTACT.instagramUrl;
   link.target = "_blank";
-  link.rel = "noreferrer";
+  link.rel = "noopener noreferrer";
+});
+
+logoMarks.forEach((mark) => {
+  const image = mark.querySelector("[data-logo-image]");
+
+  if (!image) return;
+
+  const handleLoad = () => {
+    mark.classList.add("is-loaded");
+  };
+
+  if (image.complete && image.naturalWidth > 0) {
+    handleLoad();
+    return;
+  }
+
+  image.addEventListener("load", handleLoad, { once: true });
+});
+
+if (menuToggle && nav) {
+  menuToggle.addEventListener("click", () => {
+    const isOpen = menuToggle.getAttribute("aria-expanded") === "true";
+    setMenuState(!isOpen);
+  });
+
+  navLinks.forEach((link) => {
+    link.addEventListener("click", () => {
+      setMenuState(false);
+    });
+  });
+
+  document.addEventListener("click", (event) => {
+    if (window.innerWidth > 980) return;
+    if (nav.contains(event.target) || menuToggle.contains(event.target)) return;
+    setMenuState(false);
+  });
+
+  document.addEventListener("keydown", (event) => {
+    if (event.key === "Escape") {
+      setMenuState(false);
+    }
+  });
+
+  window.addEventListener("resize", () => {
+    if (window.innerWidth > 980) {
+      setMenuState(false);
+    }
+  });
+}
+
+faqItems.forEach((item) => {
+  const button = item.querySelector("[data-faq-button]");
+  const initiallyOpen = item.classList.contains("is-open");
+
+  setFaqState(item, initiallyOpen);
+
+  if (!button) return;
+
+  button.addEventListener("click", () => {
+    const shouldOpen = !item.classList.contains("is-open");
+
+    faqItems.forEach((entry) => {
+      setFaqState(entry, false);
+    });
+
+    if (shouldOpen) {
+      setFaqState(item, true);
+    }
+  });
 });
 
 window.addEventListener("scroll", setHeaderState, { passive: true });
